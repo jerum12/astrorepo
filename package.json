@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview"
+    "build": "astro build && npm run moveBuild",
+    "preview": "astro preview",
+  "moveBuild": "rm -r public && cp -r dist/. public"
   },
+
   "keywords": [],
   "author": "",
   "license": "ISC",

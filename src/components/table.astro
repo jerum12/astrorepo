@@ -121,7 +121,7 @@ console.log('This runs in your terminal, not the browser!');
         if(searchTerm.trim() !== ''){
             
             const snapshot = await getCountFromServer(query(collection(db, 'institutions'), where('name', '==', searchTerm)));
-            console.log(snapshot.data().count)
+           // console.log(snapshot.data().count)
             return snapshot.data().count;
         }else{
             const snapshot = await getCountFromServer(query(collection(db, 'institutions')));
@@ -187,20 +187,20 @@ console.log('This runs in your terminal, not the browser!');
 
         // Adjust query based on pagination direction
             if (direction === 'next' && lastDocument) {
-                console.log(1,searchTerm)
+                //console.log(1,searchTerm)
                 if(searchTerm.trim() !== '')
                     q = query(collection(db, 'institutions'), where('name', '==', searchTerm), orderBy('name'), startAfter(lastDocument), limit(pageSize));
                 else
                     q = query(collection(db, 'institutions'), orderBy('name'), startAfter(lastDocument), limit(pageSize));
             } else if (direction === 'prev' && lastVisible) {
-                console.log(2,searchTerm)
+                //console.log(2,searchTerm)
                 if(searchTerm.trim() !== '')
                     q = query(collection(db, 'institutions'), where('name', '==', searchTerm),  orderBy('name'), endBefore(lastVisible), limit(pageSize));
                 else
                     q = query(collection(db, 'institutions'), orderBy('name'), endBefore(lastVisible), limitToLast(pageSize));
                 
             }else {
-                console.log(3,searchTerm)
+                //console.log(3,searchTerm)
                 if(searchTerm.trim() !== '')
                     q = query(collection(db, 'institutions'), where('name', '==', searchTerm), orderBy('name'), startAt(startIndex), limit(pageSize));
                 else
@@ -232,7 +232,7 @@ console.log('This runs in your terminal, not the browser!');
         //const querySnapshot = await getDocs(q);
             console.log('!querySnapshot.empty',!querySnapshot.empty)
             if (!querySnapshot.empty) {
-                console.log('1')
+               // console.log('1')
                 querySnapshot.forEach((doc:any) => {
                     const data = doc.data();
                     // Append each institution data to the table or display as needed
@@ -260,7 +260,7 @@ console.log('This runs in your terminal, not the browser!');
 
             } else {
                 // Handle case where no results are found
-                console.log('2')
+               // console.log('2')
                 const row = document.createElement('tr');
                 row.innerHTML = `<td colspan="4">No results found.</td>`;
                 tableBody.appendChild(row);
