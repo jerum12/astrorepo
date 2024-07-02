@@ -1,0 +1,118 @@
+---
+// Welcome to Astro! Everything between these triple-dash code fences
+// is your "component frontmatter". It never runs in the browser.
+console.log('This runs in your terminal, not the browser!');
+---
+<!-- Below is your "component template." It's just HTML, but with
+    some magic sprinkled in to help you build great templates. -->
+<html>
+  <body>
+ 
+
+
+    <div id="header">
+        <div class="header-right">
+            <div id="header-name">willist - My profile</div> 
+            <div> | </div>
+            <div id="header-out"> Sign Out</div>
+        </div>
+        <div>
+        <div class="header-menu">
+            <a href="/">Home</a>
+            <a href="/about/">Partnerships</a>
+            <a href="/blog/">Faculty</a>
+            <a href="/blog/">Students</a>
+            <a href="/blog/">Alumni</a>
+            <a href="/blog/">Summary</a>
+            <a href="/blog/">Profile</a>
+            <a href="/blog/" class="active">Admin</a>
+        </div>
+        <div class="header-banner">
+                <div class="logo">University of South Florida</div>
+        </div>
+        <div class="header-submenu">
+            <a href="/">Admin</a>
+            <a href="/about/" class="active">Establishments</a>
+            <a href="/blog/">Users</a>
+            <a href="/blog/">Faculty</a>
+        </div>
+    </div>
+    </div>
+
+  </body>
+</html>
+<style>
+
+    #header{
+        background-color: #fffaf0;
+        box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.5);
+        flex-grow:1;
+    }
+    .header-right{
+      display: flex;
+      justify-content: flex-end;
+      padding: 0px 10px;
+
+    }
+    .header-right > div {
+        margin: 2px;
+        color: #006646;
+    }
+    #header-name , #header-out{
+        text-decoration: underline;
+    }
+    .header-menu, .header-submenu{
+        display: flex;
+        justify-content: flex-start;
+        margin-left: 30px;
+    }
+
+    .header-menu > a{
+        margin-left:5px;
+        background:  #00855b;
+        color: white;
+        padding: 5px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .header-submenu > a{
+        margin-left:5px;
+        color: #006646;
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+
+    .header-submenu > a.active{
+        font-weight: bold;
+        background: #006646;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+        color:white;
+    }
+
+
+    .header-menu > a.active{
+        font-weight: bold;
+        background: #006646;
+    }
+
+    .header-banner{
+        background: #006646;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        
+    }
+    .header-banner > .logo{
+        font-size: 20px;
+        color: white;
+        padding-left: 20px
+    }
+
+   
+    
+   
+  
+</style>

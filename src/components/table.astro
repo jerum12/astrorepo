@@ -1,0 +1,450 @@
+---
+// Welcome to Astro! Everything between these triple-dash code fences
+// is your "component frontmatter". It never runs in the browser.
+console.log('This runs in your terminal, not the browser!');
+
+
+
+//const q = query(collection(db, 'institutions'), limit(5));
+// interface Institutuions {
+//   id: string;
+//   name: string;
+//   country: string;
+//   classification: string;
+//   parent: string;
+// }
+
+// const insRef = db.collection("institutions");
+// const insSnapshot = await insRef.get();
+// const institutions = insSnapshot.docs.map((doc: { id: any; data: () => any; }) => ({
+//   id: doc.id,
+//   ...doc.data(),
+// })) as Institutuions[];
+---
+<!-- Below is your "component template." It's just HTML, but with
+    some magic sprinkled in to help you build great templates. -->
+<html>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <body>
+
+    <div id="content-search">
+        <input type="search" class="input-search" id="search-input" placeholder="Filter by keyword">
+        <button class="btn-search">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15">
+              <path d="M21.71 20.29l-5.32-5.32A7.95 7.95 0 0 0 18 10a8 8 0 1 0-8 8 7.95 7.95 0 0 0 5.97-2.68l5.32 5.31a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42zM10 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6z"/>
+            </svg>
+            <span class="btn-text" id="search-button">Search</span>
+          </button>
+    </div>
+    <div class="pagination-container">
+        <button class="pagination-btn prev-btn" id="prev-page">&lt;</button>
+        
+        <div id="page-selector">
+            <span class="page-of">Page</span>   
+            <select id="selector" >
+                <option value="1">1</option>
+            </select>
+            <div class="page-info2">of 1</div>
+        </div>
+ 
+
+        <select id="results-per-page" >
+          <option value="10">Show 10 results per page</option>
+          <option value="20">Show 20 results per page</option>
+          <option value="50">Show 50 results per page</option>
+          <option value="100">Show 100 results per page</option>
+        </select>
+
+        <button class="pagination-btn next-btn" id="next-page">&gt;</button>
+      </div>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Country</th>
+                        <th>Classification</th>
+                        <th>Parent</th>
+                    </tr>
+                    </thead>
+                    <tbody id="table-body">
+                 
+                   
+                    </tbody>
+                </table>
+
+    </div>
+
+  </body>
+  <script>
+    import { db } from '../firebase';
+    import { collection, getDocs, query, limit, startAfter,orderBy,endBefore,getCountFromServer, limitToLast,startAt,where} from 'firebase/firestore';
+
+    let lastVisible = null;
+      let firstVisible = null;
+      let currentPage = 1;
+      let totalPages = 1;
+      let pageSize = 10; // Number of documents per page
+      const tableBody = document.getElementById('table-body');
+      const prevPageButton = document.getElementById('prev-page')  as HTMLButtonElement;
+      const nextPageButton = document.getElementById('next-page')  as HTMLButtonElement;
+      const pageNumberInput = document.getElementById('page-number')  as HTMLInputElement;
+      const pageInfo = document.getElementById('page-info');
+      const selector = document.getElementById('selector') as HTMLSelectElement;
+      const resultsPerPageSelector = document.getElementById('results-per-page') as HTMLSelectElement;
+      const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const searchButton = document.getElementById('search-button') as HTMLButtonElement;
+
+    //  async function fetchInstitutions() {
+    //    const q = query(collection(db, 'institutions'), limit(5));
+    //    const querySnapshot = await getDocs(q);
+    //    lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+    
+    //    querySnapshot.forEach((doc) => {
+    //      const row = document.createElement('tr');
+    //      row.innerHTML = `
+    //        <td>${doc.data().name}</td>
+    //        <td>${doc.data().country}</td>
+    //        <td>${doc.data().classification}</td>
+    //        <td>${doc.data().parent}</td>
+    //      `;
+    //      tableBody.appendChild(row);
+    //    });
+    //  }
+    let lastDocument = null; // To track the last document of the current page
+    let lastQueryDirection = null; // To track the last pagination direction
+    
+    
+    
+    async function fetchTotalDocuments(searchTerm : any) {
+        if(searchTerm.trim() !== ''){
+            
+            const snapshot = await getCountFromServer(query(collection(db, 'institutions'), where('name', '==', searchTerm)));
+            console.log(snapshot.data().count)
+            return snapshot.data().count;
+        }else{
+            const snapshot = await getCountFromServer(query(collection(db, 'institutions')));
+            return snapshot.data().count;
+        }
+        
+       
+      }
+
+      async function updatePageSelector(page: number, searchTerm:any) {
+ 
+        selector.innerHTML = ''; // Clear existing options
+
+        // Calculate total pages based on totalResults and resultsPerPage
+        const totalDocuments = await fetchTotalDocuments(searchTerm);
+        const totalPages = Math.ceil(totalDocuments / pageSize);
+       // pageInfo.textContent = `Page ${page} of ${totalPages}`;
+
+
+        // Add options for each page
+        for (let i = 1; i <= totalPages; i++) {
+            const option = document.createElement('option');
+            option.value = i.toString();
+            option.textContent =  i.toString();
+            selector.appendChild(option);
+        }
+
+        // Update selected option based on currentPage
+        selector.value = page.toString();
+
+        const pageInfo = document.querySelector('.page-info2');
+        pageInfo.textContent = `of ${totalPages}`;
+    }
+
+    // Function to handle page change
+    async function onPageChange() {
+        const selectedPage = parseInt(selector.value);
+        if(selectedPage === 1)
+            await fetchInstitutions(selectedPage,'prev');
+        else
+            await fetchInstitutions(selectedPage,'next');
+    }
+
+    async function handleSearchInputChange() {
+        const searchTerm = searchInput.value.trim();
+
+        await fetchInstitutions(1, null, searchTerm); // Start search from the first page
+    }
+
+    async function fetchInstitutions(page = 1, direction = 'next', searchTerm = '',) {
+       
+
+
+        const totalDocuments = await fetchTotalDocuments(searchTerm);
+        const totalPages = Math.ceil(totalDocuments / pageSize);
+        const startIndex = (page - 1) * pageSize;
+
+
+        updatePageSelector(page,searchTerm);
+     
+     
+        let q;
+
+        // Adjust query based on pagination direction
+            if (direction === 'next' && lastDocument) {
+                console.log(1,searchTerm)
+                if(searchTerm.trim() !== '')
+                    q = query(collection(db, 'institutions'), where('name', '==', searchTerm), orderBy('name'), startAfter(lastDocument), limit(pageSize));
+                else
+                    q = query(collection(db, 'institutions'), orderBy('name'), startAfter(lastDocument), limit(pageSize));
+            } else if (direction === 'prev' && lastVisible) {
+                console.log(2,searchTerm)
+                if(searchTerm.trim() !== '')
+                    q = query(collection(db, 'institutions'), where('name', '==', searchTerm),  orderBy('name'), endBefore(lastVisible), limit(pageSize));
+                else
+                    q = query(collection(db, 'institutions'), orderBy('name'), endBefore(lastVisible), limitToLast(pageSize));
+                
+            }else {
+                console.log(3,searchTerm)
+                if(searchTerm.trim() !== '')
+                    q = query(collection(db, 'institutions'), where('name', '==', searchTerm), orderBy('name'), startAt(startIndex), limit(pageSize));
+                else
+                q = query(collection(db, 'institutions'), orderBy('name'), startAt(startIndex), limit(pageSize));
+              
+            }
+
+      
+       
+        // if (direction === 'next') {
+        //   q = query(collection(db, 'institutions'), orderBy('name'), limit(5));
+
+        //   if (lastVisible && page > 1) {
+        //     q = query(collection(db, 'institutions'), orderBy('name'), startAfter(lastVisible), limit(5));
+        //   }
+        // } else if (direction === 'prev') {
+        //   q = query(collection(db, 'institutions'), orderBy('name'), endBefore(firstVisible), limit(5));
+        // } else {
+        //   q = query(collection(db, 'institutions'), orderBy('name'), limit(5 * page));
+        // }
+
+        const querySnapshot = await getDocs(q);
+
+
+        
+        tableBody.innerHTML = '';
+
+        try {
+        //const querySnapshot = await getDocs(q);
+            console.log('!querySnapshot.empty',!querySnapshot.empty)
+            if (!querySnapshot.empty) {
+                console.log('1')
+                querySnapshot.forEach((doc:any) => {
+                    const data = doc.data();
+                    // Append each institution data to the table or display as needed
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${doc.data().name}</td>
+                        <td>${doc.data().country}</td>
+                        <td>${doc.data().classification}</td>
+                        <td>${doc.data().parent}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Update lastDocument for pagination
+                if (!querySnapshot.empty) {
+                    lastDocument =  querySnapshot.docs[querySnapshot.docs.length - 1] 
+                    lastVisible  = querySnapshot.docs[0];
+                }
+
+                // Enable/disable pagination buttons based on page number and total pages
+                prevPageButton.disabled = (page === 1);
+                nextPageButton.disabled = (page >= totalPages);
+                //pageNumberInput.value = page.toString();
+                currentPage = page;
+
+            } else {
+                // Handle case where no results are found
+                console.log('2')
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="4">No results found.</td>`;
+                tableBody.appendChild(row);
+
+                // Disable pagination buttons if no results
+                prevPageButton.disabled = true;
+                nextPageButton.disabled = true;
+            }
+
+        } catch (error) {
+            console.error('Error fetching institutions: ', error);
+            // Display error message or handle error as needed
+        }
+        
+        // querySnapshot.forEach((doc:any) => {
+        //   const row = document.createElement('tr');
+        //   row.innerHTML = `
+        //    <td>${doc.data().name}</td>
+        //     <td>${doc.data().country}</td>
+        //     <td>${doc.data().classification}</td>
+        //     <td>${doc.data().parent}</td>
+        //   `;
+        //   tableBody.appendChild(row);
+        // });
+
+        // if (!querySnapshot.empty) {
+        //     lastDocument =  querySnapshot.docs[querySnapshot.docs.length - 1] 
+        //     lastVisible  = querySnapshot.docs[0];
+        // }
+
+
+        // prevPageButton.disabled = (page === 1);
+        // nextPageButton.disabled = (page >= totalPages);
+        // //pageNumberInput.value = page.toString();
+        // currentPage = page;
+      }
+
+      prevPageButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+          fetchInstitutions(currentPage - 1, 'prev');
+        }
+      });
+
+      nextPageButton.addEventListener('click', () => {
+        fetchInstitutions(currentPage + 1, 'next');
+      });
+
+      selector.addEventListener('change', () => {
+        onPageChange();
+      });
+
+      resultsPerPageSelector.addEventListener('change', async function() {
+        pageSize = parseInt(resultsPerPageSelector.value);
+        await fetchInstitutions(1,null); // Re-fetch institutions with the new pageSize
+    });
+    // Event listener for search input change
+    searchButton.addEventListener('click', handleSearchInputChange);
+
+ 
+     // Initial fetch
+     fetchInstitutions();
+   </script>
+</html>
+<style>
+
+
+#content-search{
+        display: flex;
+        align-items: stretch;
+        margin-bottom: 20px;
+    }
+    #content-search > .input-search{
+        background-color: #fffaf0;
+        flex: 1; 
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px; 
+        font-size: 14px; 
+    }
+     .btn-search {
+        display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: #00855b;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px; 
+    }
+    
+    .btn-search:hover {
+      background-color: #00855b;
+    }
+    
+    .btn-search svg {
+      fill: #fff;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+    
+    .btn-text {
+      margin-left: 2px;
+    }
+
+#page-selector{
+        display: flex;
+    }
+
+    button:disabled {
+    background-color: #ccc; 
+    color: #666; 
+    cursor: not-allowed; 
+    opacity: 0.6; 
+}
+
+    #selector{
+        background-color: #006646;
+        color:white;
+        padding: 3px 10px 3px 10px;
+        border-radius: 5px;
+    }
+
+    .page-of{
+        margin-right: 5px;
+        color: #006646;
+        font-weight: bold;
+    }
+    .page-info{
+        margin-left: 5px;
+        margin-right: 5px;
+        color: #006646;
+        font-weight: bold;
+    }
+    .pagination-container{
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    #results-per-page{
+        background-color: #006646;
+        color:white;
+        padding: 3px 10px 3px 10px;
+        border-radius: 5px;
+        }
+    .pagination-btn {
+        background-color: #006646;
+        color: white;
+        padding: 3px 5px;
+        border-radius: 100%;
+        width: 30px; 
+        height: 30px; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+    }
+
+  table {
+      width: 100%;
+
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th{
+      border: 1px solid #ddd;
+      padding: 2px;
+      text-align: left;   
+    }
+     td {
+      border: 1px solid #ddd;
+      padding: 2px;
+      text-align: center;
+    }
+    th {
+      background-color: #006646;
+      color: white;
+    }
+
+    tr:nth-of-type(odd) { 
+        background-color: #fffaf0; 
+    }
+    
+
+
+  
+</style>

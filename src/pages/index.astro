@@ -1,0 +1,96 @@
+---
+// Welcome to Astro! Everything between these triple-dash code fences
+// is your "component frontmatter". It never runs in the browser.
+console.log('This runs in your terminal, not the browser!');
+
+import Header from '../components/header.astro';
+import Search from '../components/search.astro';
+import Pagination from '../components/pagination.astro';
+import Table from '../components/table.astro';
+import Footer from '../components/footer.astro';
+
+
+// const querySnapshot = await getDocs(collection(db, "institutions"));
+// querySnapshot.forEach((doc) => {
+//     console.log(doc.id, " => ", doc.data());
+// });
+
+---
+<!-- Below is your "component template." It's just HTML, but with
+    some magic sprinkled in to help you build great templates. -->
+<html>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <body>
+ 
+    <div class="wrapper">
+        <Header />
+
+        <div id="content">
+            <div id="content">
+                <h1 class="content-h1">FIND AN ESTABLISHMENTS</h1>    
+             
+               <div class="page-table">
+              
+                    <Table/>
+               </div>
+               <div class="establishment">
+                <button class="create-button">
+                    <span class="plus-icon">+</span>
+                    <span>Create a new Establishment</span>
+                </button>
+               </div>
+            </div>
+        </div>
+    </div>
+   
+
+    <Footer/>
+
+  </body>
+</html>
+<style>
+
+    body{
+        min-height: 100vh;
+        margin: 0px auto;
+        box-sizing: border-box;
+    }
+    .wrapper{
+        flex: 1; /* This pushes the footer to the bottom */
+    display: flex;
+    flex-direction: column;
+    }
+
+ 
+    .content-h1{
+        text-align: center;
+        margin: 10px;
+        font-size: 20px;
+        color:#006646;
+        }
+    .establishment{
+        justify-content: center;
+        display: flex;
+
+        margin-bottom: 50px;
+    }
+
+    .create-button{
+        display: flex;
+        justify-content: center;
+        align-items: center; 
+        padding: 5px;
+        background-color: #00855b;
+        color: white; 
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+       
+        }
+
+        .page-table{
+            width: 90%;
+            margin: 0px auto;
+        }
+  
+</style>

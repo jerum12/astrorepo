@@ -1,0 +1,84 @@
+---
+// Welcome to Astro! Everything between these triple-dash code fences
+// is your "component frontmatter". It never runs in the browser.
+console.log('This runs in your terminal, not the browser!');
+---
+<!-- Below is your "component template." It's just HTML, but with
+    some magic sprinkled in to help you build great templates. -->
+<html>
+  <body>
+ 
+
+
+    <div class="pagination-container">
+        <button class="pagination-btn prev-btn">&lt;</button>
+        
+        <div id="page-selector">
+            <span class="page-of">Page</span>   
+            <select id="selector" >
+                <option value="1">1</option>
+            </select>
+            <div class="page-info">of 553</div>
+        </div>
+     
+        <select id="results-per-page" >
+          <option value="10">Show 10 results per page</option>
+          <option value="20">Show 20 results per page</option>
+          <option value="50">Show 50 results per page</option>
+          <option value="100">Show 100 results per page</option>
+        </select>
+
+        <button class="pagination-btn next-btn">&gt;</button>
+      </div>
+
+  </body>
+</html>
+<style>
+    
+    #page-selector{
+        display: flex;
+    }
+
+    #selector{
+        background-color: #006646;
+        color:white;
+        padding: 3px 10px 3px 10px;
+        border-radius: 5px;
+    }
+
+    .page-of{
+        margin-right: 5px;
+        color: #006646;
+        font-weight: bold;
+    }
+    .page-info{
+        margin-left: 5px;
+        margin-right: 5px;
+        color: #006646;
+        font-weight: bold;
+    }
+    .pagination-container{
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    #results-per-page{
+        background-color: #006646;
+        color:white;
+        padding: 3px 10px 3px 10px;
+        border-radius: 5px;
+        }
+    .pagination-btn {
+        background-color: #006646;
+        color: white;
+        padding: 3px 5px;
+        border-radius: 100%;
+        width: 30px; 
+        height: 30px; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+    }
+</style>
